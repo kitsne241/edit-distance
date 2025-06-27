@@ -192,6 +192,12 @@ const enclose = (symbol: string) => {
   caret-color: white;
 }
 
+@media (prefers-color-scheme: light) {
+  .input {
+    caret-color: black;
+  }
+}
+
 .tools {
   display: flex;
   flex-direction: column;

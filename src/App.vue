@@ -46,17 +46,17 @@ onMounted(() => {
   <div :class="$style.app">
     <div :class="$style.container">
       <div :class="$style.input1">
-        <MarkdownEditor v-model:text="text1" color="#FF8000" />
+        <MarkdownEditor v-model:text="text1" color="#ff8000" />
       </div>
       <div :class="$style.input2">
-        <MarkdownEditor v-model:text="text2" color="#00ff80" />
+        <MarkdownEditor v-model:text="text2" color="#00bb60" />
       </div>
       <div :class="$style.output">
         <div :class="$style.output1">
-          <TextViewer :text="diff1" color="#FF8000" />
+          <TextViewer :text="diff1" color="#ff8000" />
         </div>
         <div :class="$style.output2">
-          <TextViewer :text="diff2" color="#00ff80" />
+          <TextViewer :text="diff2" color="#00bb60" />
         </div>
       </div>
     </div>
@@ -107,7 +107,7 @@ onMounted(() => {
   right: 16px;
   width: calc(50% - 24px);
   height: 200px;
-  outline: 1px solid #00ff80;
+  outline: 1px solid #00bb60;
   border-radius: 8px;
 }
 

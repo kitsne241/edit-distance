@@ -46,7 +46,7 @@ function hexToRgba(hex: string, alpha: number) {
                 obj.show === 'hidden'
                   ? { opacity: 0 }
                   : obj.show === 'colored' && color
-                  ? { background: hexToRgba(color, 0.1) }
+                  ? { background: hexToRgba(color, 0.15) }
                   : {}
               "
             >
