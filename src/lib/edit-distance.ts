@@ -1,16 +1,13 @@
 type EditCell = { cost: number; prev: "top" | "left" | "diagonal" };
 
-export const getCorrespondence = (a: string, b: string) => {
-  if (!a.endsWith("\n")) a += "\n";
-  if (!b.endsWith("\n")) b += "\n";
+// 編集距離のグラフを作成する
+const buildEditGraph = (a: string, b: string): EditCell[][] => {
   const graph: (EditCell | undefined)[][] = Array.from({ length: a.length + 1 }, () =>
     Array.from({ length: b.length + 1 }, () => undefined)
   );
 
-  // 左上のセルを初期化
+  // 周辺部分の初期化
   graph[0][0] = { cost: 0, prev: "diagonal" };
-
-  // 上と左のセルを初期化
   for (let i = 1; i <= a.length; i++) {
     graph[i][0] = { cost: i, prev: "top" };
   }
@@ -18,7 +15,7 @@ export const getCorrespondence = (a: string, b: string) => {
     graph[0][j] = { cost: j, prev: "left" };
   }
 
-  // グラフを埋める
+  // 最短編集距離の計算
   for (let i = 1; i <= a.length; i++) {
     for (let j = 1; j <= b.length; j++) {
       if (a[i - 1] === b[j - 1]) {
@@ -26,10 +23,8 @@ export const getCorrespondence = (a: string, b: string) => {
         graph[i][j] = { cost: diagonal!.cost, prev: "diagonal" };
         continue;
       }
-
       const top = graph[i - 1][j];
       const left = graph[i][j - 1];
-
       if (top!.cost > left!.cost) {
         graph[i][j] = { cost: left!.cost + 1, prev: "left" };
       } else {
@@ -38,25 +33,29 @@ export const getCorrespondence = (a: string, b: string) => {
     }
   }
 
-  // 共通部分を算出
+  return graph as EditCell[][];
+};
+
+// graph を辿って共通部分 common を作り、改行で分割。a, b それぞれの末尾に \n があることを前提とする
+const getRoughCors = (graph: EditCell[][], a: string, b: string) => {
   const common: { char: string; ai: number; bi: number }[] = [];
-  let traceI = a.length;
-  let j = b.length;
-  while (traceI >= 0 || j >= 0) {
-    const cell = graph[traceI][j]!;
+  let pos = { i: a.length, j: b.length };
+
+  // graph の右下から左上に向かって辿る
+  while (pos.i >= 0 || pos.j >= 0) {
+    const cell = graph[pos.i][pos.j]!;
     switch (cell.prev) {
       case "diagonal": {
-        common.push({ char: a[traceI - 1], ai: traceI - 1, bi: j - 1 });
-        traceI--;
-        j--;
+        common.push({ char: a[pos.i - 1], ai: pos.i - 1, bi: pos.j - 1 });
+        pos = { i: pos.i - 1, j: pos.j - 1 };
         break;
       }
       case "top": {
-        traceI--;
+        pos = { i: pos.i - 1, j: pos.j };
         break;
       }
       case "left": {
-        j--;
+        pos = { i: pos.i, j: pos.j - 1 };
         break;
       }
     }
@@ -65,75 +64,74 @@ export const getCorrespondence = (a: string, b: string) => {
   common.pop();
   common.reverse();
 
-  // common に含まれる改行で a, b を分割
-  let cors: { ar: string; br: string }[] = [];
+  let cors: { ap: string; bp: string }[] = [];
   let lastAi = 0;
   let lastBi = 0;
-
   for (const { char, ai, bi } of common) {
     if (char === "\n") {
-      cors = [...cors, ...analyzePart(a.slice(lastAi, ai + 1), b.slice(lastBi, bi + 1))];
+      cors.push({ ap: a.slice(lastAi, ai + 1), bp: b.slice(lastBi, bi + 1) });
       lastAi = ai + 1;
       lastBi = bi + 1;
     }
   }
-  cors = [...cors, ...analyzePart(a.slice(lastAi, a.length), b.slice(lastBi, b.length))];
 
-  // ar が "" であるものからスタートして、交互に "" になっている限り進み、結果をまとめる
-  const merged: { ar: string; br: string }[] = [];
-  let mergeI = 0;
-  while (mergeI < cors.length) {
-    if ((cors[mergeI].ar === "" && cors[mergeI].br !== "") || (cors[mergeI].ar !== "" && cors[mergeI].br === "")) {
-      let arGroup: string[] = [];
-      let brGroup: string[] = [];
-      let j = mergeI;
-      while (
-        j < cors.length &&
-        ((cors[j].ar === "" && cors[j].br !== "") || (cors[j].ar !== "" && cors[j].br === ""))
-      ) {
-        arGroup.push(cors[j].ar);
-        brGroup.push(cors[j].br);
-        j++;
-      }
-      merged.push({ ar: arGroup.join(""), br: brGroup.join("") });
-      mergeI = j;
-    } else {
-      merged.push({ ar: cors[mergeI].ar, br: cors[mergeI].br });
-      mergeI++;
-    }
-  }
-
-  console.log("merged:", merged);
-  return merged;
+  return cors;
 };
 
-const analyzePart = (a: string, b: string): { ar: string; br: string }[] => {
-  const cor: { ar: string; br: string }[] = [];
-  // 改行を含めて分割することで空行や末尾も正しく扱う
-  const aLines = a.length === 0 ? [] : a.split(/(?<=\n)/);
-  const bLines = b.length === 0 ? [] : b.split(/(?<=\n)/);
-  console.log("aLines:", aLines);
-  console.log("bLines:", bLines);
-  const usedB = new Array(bLines.length).fill(false);
+// 2 つの文字列 a と b の部分文字列の対応を取得する
+const getLineCors = (arp: string, brp: string): { al: string; bl: string }[] => {
+  // 末尾の \n を含む分割
+  const arpLines = arp.split(/(?<=\n)/).map((line) => ({ line, used: false }));
+  const brpLines = brp.split(/(?<=\n)/).map((line) => ({ line, used: false }));
+  const cors: { al: string; bl: string }[] = [];
 
-  for (let i = 0; i < aLines.length; i++) {
-    let matched = false;
-    for (let j = 0; j < bLines.length; j++) {
-      if (!usedB[j] && aLines[i] === bLines[j]) {
-        cor.push({ ar: aLines[i], br: bLines[j] });
-        usedB[j] = true;
-        matched = true;
-        break;
+  for (let i = 0; i < arpLines.length; i++) {
+    for (let j = 0; j < brpLines.length; j++) {
+      if (arpLines[i].used || brpLines[j].used) continue;
+      if (arpLines[i].line === brpLines[j].line) {
+        cors.push({ al: arpLines[i].line, bl: brpLines[j].line });
+        arpLines[i].used = true;
+        brpLines[j].used = true;
       }
     }
-    if (!matched) cor.push({ ar: aLines[i], br: "" });
-  }
-
-  for (let j = 0; j < bLines.length; j++) {
-    if (!usedB[j]) {
-      cor.push({ ar: "", br: bLines[j] });
+    if (!arpLines[i].used) {
+      cors.push({ al: arpLines[i].line, bl: "" });
+      arpLines[i].used = true;
     }
   }
-  console.log("cor:", cor);
-  return cor;
+
+  for (let j = 0; j < brpLines.length; j++) {
+    if (!brpLines[j].used) {
+      cors.push({ al: "", bl: brpLines[j].line });
+      brpLines[j].used = true;
+    }
+  }
+
+  return cors;
+};
+
+// a と b それぞれの部分文字列の対応を取得。末尾に \n を含む
+export const getCors = (a: string, b: string): { ap: string; bp: string }[] => {
+  a = a + "\n";
+  b = b + "\n";
+  const roughCors = getRoughCors(buildEditGraph(a, b), a, b);
+
+  // 交互に片方が空文字列になっている部分を統合
+  const result: { ap: string; bp: string }[] = [{ ap: "", bp: "" }];
+  let last = { al: "", bl: "" };
+
+  for (const { ap, bp } of roughCors) {
+    for (const { al, bl } of getLineCors(ap, bp)) {
+      if (al !== "" && bl !== "") {
+        result.push({ ap: al, bp: bl });
+        result.push({ ap: "", bp: "" });
+      } else {
+        result[result.length - 1].ap += al;
+        result[result.length - 1].bp += bl;
+        continue;
+      }
+      last = { al, bl };
+    }
+  }
+  return result;
 };

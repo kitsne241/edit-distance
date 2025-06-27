@@ -111,6 +111,7 @@ function hexToRgba(hex: string, alpha: number) {
 
 .lineNumberText {
   text-align: right;
+  user-select: none;
 }
 
 .dummyLineText {

@@ -2,39 +2,39 @@
 import MarkdownEditor from "./components/MarkdownEditor.vue";
 import TextViewer from "./components/TextViewer.vue";
 import { onMounted, ref, watchEffect } from "vue";
-import { getCorrespondence } from "./lib/edit-distance";
+import { getCors } from "./lib/edit-distance";
 
-const text1 = ref("sta\nnda\nrd");
-const text2 = ref("stu\ndent");
+const text1 = ref("ABC");
+const text2 = ref("DEF");
 
 type ShowType = "hidden" | "shown" | "colored";
 const diff1 = ref<{ line: string; show: ShowType }[]>([]);
 const diff2 = ref<{ line: string; show: ShowType }[]>([]);
 
 watchEffect(() => {
-  const pairs = getCorrespondence(text1.value, text2.value);
-  console.log(pairs);
+  const cors = getCors(text1.value, text2.value);
+  console.log("cors:", cors);
   const arr: { line: string; show1: ShowType; show2: ShowType }[] = [];
-  for (const { ar, br } of pairs) {
-    if (ar === br) {
-      for (const line of ar.split(/(?<=\n)/)) {
-        if (line !== "") arr.push({ line, show1: "shown", show2: "shown" });
+  for (let { ap, bp } of cors) {
+    if (ap === "" && bp === "") continue;
+    if (ap === bp) {
+      for (const line of ap.split("\n").slice(0, -1)) {
+        arr.push({ line, show1: "shown", show2: "shown" });
       }
+      continue;
     } else {
-      if (ar !== "") {
-        for (const line of ar.split(/(?<=\n)/)) {
-          if (line !== "") arr.push({ line, show1: "colored", show2: "hidden" });
-        }
+      for (const line of ap.split("\n").slice(0, -1)) {
+        arr.push({ line, show1: "colored", show2: "hidden" });
       }
-      if (br !== "") {
-        for (const line of br.split(/(?<=\n)/)) {
-          if (line !== "") arr.push({ line, show1: "hidden", show2: "colored" });
-        }
+      for (const line of bp.split("\n").slice(0, -1)) {
+        arr.push({ line, show1: "hidden", show2: "colored" });
       }
     }
   }
-  diff1.value = arr.map((l) => ({ line: l.line, show: l.show1 })).filter((l) => l.line !== undefined);
-  diff2.value = arr.map((l) => ({ line: l.line, show: l.show2 })).filter((l) => l.line !== undefined);
+  console.log("arr:", arr);
+
+  diff1.value = arr.map((l) => ({ line: l.line, show: l.show1 }));
+  diff2.value = arr.map((l) => ({ line: l.line, show: l.show2 }));
 });
 
 onMounted(() => {
@@ -125,13 +125,13 @@ onMounted(() => {
 }
 
 .output1 {
-  position: relative;
+  position: absolute;
   width: calc(50% - 8px);
   height: 100%;
 }
 
 .output2 {
-  position: relative;
+  position: absolute;
   right: 0px;
   width: calc(50% - 8px);
   height: 100%;
