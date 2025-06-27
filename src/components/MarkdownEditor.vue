@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref, watch, nextTick } from "vue";
-import { decorated } from "@/lib/editor-parse";
+import { simpleDecorated } from "@/lib/editor-parse";
 const text = defineModel<string>("text");
 
 defineProps<{ color?: string }>();
@@ -93,7 +93,7 @@ const enclose = (symbol: string) => {
             :class="$style.input"
           ></textarea>
           <div :class="$style.dummy">
-            <div v-for="(line, i) in decorated(textAll, underline)" :key="i" :class="$style.dummyLine">
+            <div v-for="(line, i) in simpleDecorated(textAll, underline)" :key="i" :class="$style.dummyLine">
               <div :class="$style.lineNumber">
                 <p :class="$style.lineNumberText" :style="{ color: color }">
                   {{ i + 1 }}
