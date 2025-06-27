@@ -23,7 +23,7 @@ function hexToRgba(hex: string, alpha: number) {
 
 <template>
   <div :class="$style.container">
-    <div style="width: 100%; height: 100%; overflow-y: auto">
+    <div style="width: 100%; height: 100%">
       <div
         style="
           width: 100%;

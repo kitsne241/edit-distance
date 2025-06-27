@@ -120,16 +120,17 @@ onMounted(() => {
   border-radius: 8px;
   margin-top: 20px;
   overflow: auto;
+  display: flex;
 }
 
 .output1 {
-  position: absolute;
+  position: relative;
   width: calc(50% - 8px);
   height: 100%;
 }
 
 .output2 {
-  position: absolute;
+  position: relative;
   right: 0px;
   width: calc(50% - 8px);
   height: 100%;
