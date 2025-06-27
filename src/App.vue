@@ -2,7 +2,7 @@
 import MarkdownEditor from "./components/MarkdownEditor.vue";
 import TextViewer from "./components/TextViewer.vue";
 import { onMounted, ref, watchEffect } from "vue";
-import { commonLines } from "./lib/edit-distance";
+import { getCorrespondence } from "./lib/edit-distance";
 
 const text1 = ref("sta\nnda\nrd");
 const text2 = ref("stu\ndent");
@@ -12,7 +12,8 @@ const diff1 = ref<{ line: string; show: ShowType }[]>([]);
 const diff2 = ref<{ line: string; show: ShowType }[]>([]);
 
 watchEffect(() => {
-  const pairs = commonLines(text1.value, text2.value);
+  const pairs = getCorrespondence(text1.value, text2.value);
+  console.log(pairs);
   const arr: { line: string; show1: ShowType; show2: ShowType }[] = [];
   for (const { ar, br } of pairs) {
     if (ar === br) {
