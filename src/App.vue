@@ -7,31 +7,31 @@ import { commonLines } from "./lib/edit-distance";
 const text1 = ref("sta\nnda\nrd");
 const text2 = ref("stu\ndent");
 
-const diff1 = ref<{ line: string; show: boolean }[]>([]);
-const diff2 = ref<{ line: string; show: boolean }[]>([]);
+type ShowType = "hidden" | "shown" | "colored";
+const diff1 = ref<{ line: string; show: ShowType }[]>([]);
+const diff2 = ref<{ line: string; show: ShowType }[]>([]);
 
 watchEffect(() => {
   const pairs = commonLines(text1.value, text2.value);
-  const arr: { line: string; show1: boolean; show2: boolean }[] = [];
+  const arr: { line: string; show1: ShowType; show2: ShowType }[] = [];
   for (const { ar, br } of pairs) {
     if (ar === br) {
       for (const line of ar.split("\n")) {
-        arr.push({ line, show1: true, show2: true });
+        arr.push({ line, show1: "shown", show2: "shown" });
       }
     } else {
       if (ar !== "") {
         for (const line of ar.split("\n")) {
-          arr.push({ line, show1: true, show2: false });
+          arr.push({ line, show1: "colored", show2: "hidden" });
         }
       }
       if (br !== "") {
         for (const line of br.split("\n")) {
-          arr.push({ line, show1: false, show2: true });
+          arr.push({ line, show1: "hidden", show2: "colored" });
         }
       }
     }
   }
-  // 末尾の空行が混ざる場合は除外
   diff1.value = arr.map((l) => ({ line: l.line, show: l.show1 })).filter((l) => l.line !== undefined);
   diff2.value = arr.map((l) => ({ line: l.line, show: l.show2 })).filter((l) => l.line !== undefined);
 });
@@ -51,13 +51,11 @@ onMounted(() => {
         <MarkdownEditor v-model:text="text2" color="#00ff80" />
       </div>
       <div :class="$style.output">
-        <div style="display: flex; width: 100%; height: 100%">
-          <div style="width: 50%; height: 100%; border-right: 1px solid #ccc">
-            <TextViewer :text="diff1" color="#FF8000" />
-          </div>
-          <div style="width: 50%; height: 100%">
-            <TextViewer :text="diff2" color="#00ff80" />
-          </div>
+        <div :class="$style.output1">
+          <TextViewer :text="diff1" color="#FF8000" />
+        </div>
+        <div :class="$style.output2">
+          <TextViewer :text="diff2" color="#00ff80" />
         </div>
       </div>
     </div>
@@ -124,32 +122,16 @@ onMounted(() => {
   overflow: auto;
 }
 
-.diffTable {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  font-family: "M PLUS Code Latin", "M PLUS 1p";
+.output1 {
+  position: absolute;
+  width: calc(50% - 8px);
+  height: 100%;
 }
 
-.diffRow {
-  display: flex;
-  flex-direction: row;
-  min-height: 1.5em;
-}
-
-.diffCellLeft,
-.diffCellRight {
-  width: 50%;
-  padding: 2px 8px;
-  white-space: pre;
-  box-sizing: border-box;
-}
-
-.diff .diffCellLeft {
-  color: #ff8000;
-}
-
-.diff .diffCellRight {
-  color: #00ff80;
+.output2 {
+  position: absolute;
+  right: 0px;
+  width: calc(50% - 8px);
+  height: 100%;
 }
 </style>

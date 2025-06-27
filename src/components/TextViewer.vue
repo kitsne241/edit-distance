@@ -1,7 +1,24 @@
 <script setup lang="ts">
 import { defineProps } from "vue";
 import { simpleDecorated } from "@/lib/editor-parse";
-defineProps<{ text: { line: string; show: boolean }[]; color?: string }>();
+type ShowType = "hidden" | "shown" | "colored";
+
+defineProps<{ text: { line: string; show: ShowType }[]; color?: string }>();
+
+function hexToRgba(hex: string, alpha: number) {
+  if (!hex) return "";
+  let c = hex.replace("#", "");
+  if (c.length === 3)
+    c = c
+      .split("")
+      .map((x) => x + x)
+      .join("");
+  if (c.length !== 6) return "";
+  const r = parseInt(c.slice(0, 2), 16);
+  const g = parseInt(c.slice(2, 4), 16);
+  const b = parseInt(c.slice(4, 6), 16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
 </script>
 
 <template>
@@ -21,10 +38,21 @@ defineProps<{ text: { line: string; show: boolean }[]; color?: string }>();
         <div :style="{ flexShrink: 0, borderLeft: `1px dashed ${color}`, paddingRight: '6px' }"></div>
         <div :class="$style.main">
           <div :class="$style.dummy">
-            <div v-for="(obj, i) in text" :key="i" :class="$style.dummyLine" :style="!obj.show ? { opacity: 0 } : {}">
+            <div
+              v-for="(obj, i) in text"
+              :key="i"
+              :class="$style.dummyLine"
+              :style="
+                obj.show === 'hidden'
+                  ? { opacity: 0 }
+                  : obj.show === 'colored' && color
+                  ? { background: hexToRgba(color, 0.1) }
+                  : {}
+              "
+            >
               <div :class="$style.lineNumber">
-                <p :class="$style.lineNumberText" :style="{ color: color }">
-                  {{ i + 1 }}
+                <p v-if="obj.show !== 'hidden'" :class="$style.lineNumberText" :style="{ color: color }">
+                  {{ text.slice(0, i + 1).filter((x) => x.show !== "hidden").length }}
                 </p>
               </div>
               <span
@@ -58,6 +86,7 @@ defineProps<{ text: { line: string; show: boolean }[]; color?: string }>();
   min-height: fit-content;
   flex-shrink: 1;
   position: relative;
+  margin-right: 6px;
 }
 
 .dummy {
