@@ -30,3 +30,22 @@ textarea {
   text-align: inherit;
   line-height: inherit;
 }
+
+*::-webkit-scrollbar {
+  color:#000000;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background-color: rgba(128, 128, 128, 0.2);
+  border-radius: 6px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(128, 128, 128, 0.6);
+}
+*::-webkit-scrollbar-corner {
+  background-color: transparent;
+}

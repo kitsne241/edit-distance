@@ -1,4 +1,4 @@
-# GitHub Pages公式ワークフロー（pnpm+Vite用）
+# GitHub Pages 公式ワークフロー（pnpm + Vite 用）
 name: Deploy static content to Pages
 
 on:
