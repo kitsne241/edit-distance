@@ -1,6 +1,8 @@
 type EditCell = { cost: number; prev: "top" | "left" | "diagonal" };
 
 export const getCorrespondence = (a: string, b: string) => {
+  if (!a.endsWith("\n")) a += "\n";
+  if (!b.endsWith("\n")) b += "\n";
   const graph: (EditCell | undefined)[][] = Array.from({ length: a.length + 1 }, () =>
     Array.from({ length: b.length + 1 }, () => undefined)
   );
@@ -70,7 +72,7 @@ export const getCorrespondence = (a: string, b: string) => {
 
   for (const { char, ai, bi } of common) {
     if (char === "\n") {
-      cors = [...cors, ...analyzePart(a.slice(lastAi, ai), b.slice(lastBi, bi))];
+      cors = [...cors, ...analyzePart(a.slice(lastAi, ai + 1), b.slice(lastBi, bi + 1))];
       lastAi = ai + 1;
       lastBi = bi + 1;
     }
@@ -89,24 +91,29 @@ export const getCorrespondence = (a: string, b: string) => {
         j < cors.length &&
         ((cors[j].ar === "" && cors[j].br !== "") || (cors[j].ar !== "" && cors[j].br === ""))
       ) {
-        if (cors[j].ar !== "") arGroup.push(cors[j].ar);
-        if (cors[j].br !== "") brGroup.push(cors[j].br);
+        arGroup.push(cors[j].ar);
+        brGroup.push(cors[j].br);
         j++;
       }
-      merged.push({ ar: arGroup.join("\n"), br: brGroup.join("\n") });
+      merged.push({ ar: arGroup.join(""), br: brGroup.join("") });
       mergeI = j;
     } else {
-      merged.push(cors[mergeI]);
+      merged.push({ ar: cors[mergeI].ar, br: cors[mergeI].br });
       mergeI++;
     }
   }
+
+  console.log("merged:", merged);
   return merged;
 };
 
 const analyzePart = (a: string, b: string): { ar: string; br: string }[] => {
   const cor: { ar: string; br: string }[] = [];
-  const aLines = a.split("\n");
-  const bLines = b.split("\n");
+  // 改行を含めて分割することで空行や末尾も正しく扱う
+  const aLines = a.length === 0 ? [] : a.split(/(?<=\n)/);
+  const bLines = b.length === 0 ? [] : b.split(/(?<=\n)/);
+  console.log("aLines:", aLines);
+  console.log("bLines:", bLines);
   const usedB = new Array(bLines.length).fill(false);
 
   for (let i = 0; i < aLines.length; i++) {
@@ -119,9 +126,7 @@ const analyzePart = (a: string, b: string): { ar: string; br: string }[] => {
         break;
       }
     }
-    if (!matched) {
-      cor.push({ ar: aLines[i], br: "" });
-    }
+    if (!matched) cor.push({ ar: aLines[i], br: "" });
   }
 
   for (let j = 0; j < bLines.length; j++) {
@@ -129,5 +134,6 @@ const analyzePart = (a: string, b: string): { ar: string; br: string }[] => {
       cor.push({ ar: "", br: bLines[j] });
     }
   }
+  console.log("cor:", cor);
   return cor;
 };

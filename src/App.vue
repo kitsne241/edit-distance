@@ -17,18 +17,18 @@ watchEffect(() => {
   const arr: { line: string; show1: ShowType; show2: ShowType }[] = [];
   for (const { ar, br } of pairs) {
     if (ar === br) {
-      for (const line of ar.split("\n")) {
-        arr.push({ line, show1: "shown", show2: "shown" });
+      for (const line of ar.split(/(?<=\n)/)) {
+        if (line !== "") arr.push({ line, show1: "shown", show2: "shown" });
       }
     } else {
       if (ar !== "") {
-        for (const line of ar.split("\n")) {
-          arr.push({ line, show1: "colored", show2: "hidden" });
+        for (const line of ar.split(/(?<=\n)/)) {
+          if (line !== "") arr.push({ line, show1: "colored", show2: "hidden" });
         }
       }
       if (br !== "") {
-        for (const line of br.split("\n")) {
-          arr.push({ line, show1: "hidden", show2: "colored" });
+        for (const line of br.split(/(?<=\n)/)) {
+          if (line !== "") arr.push({ line, show1: "hidden", show2: "colored" });
         }
       }
     }
