@@ -118,8 +118,6 @@ export const getCors = (a: string, b: string): { ap: string; bp: string }[] => {
 
   // 交互に片方が空文字列になっている部分を統合
   const result: { ap: string; bp: string }[] = [{ ap: "", bp: "" }];
-  let last = { al: "", bl: "" };
-
   for (const { ap, bp } of roughCors) {
     for (const { al, bl } of getLineCors(ap, bp)) {
       if (al !== "" && bl !== "") {
@@ -130,7 +128,6 @@ export const getCors = (a: string, b: string): { ap: string; bp: string }[] => {
         result[result.length - 1].bp += bl;
         continue;
       }
-      last = { al, bl };
     }
   }
   return result;
