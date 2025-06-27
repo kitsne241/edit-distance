@@ -5,7 +5,7 @@ import vuetify from "vite-plugin-vuetify";
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: "/diff/",
+  base: "/edit-distance/",
   plugins: [vue(), vuetify()],
   resolve: {
     alias: {
