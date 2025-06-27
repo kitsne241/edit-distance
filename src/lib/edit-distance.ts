@@ -1,7 +1,6 @@
 type EditCell = { cost: number; prev: "top" | "left" | "diagonal" };
-type Operation = { type: "insert" | "delete"; char: string; index: number };
 
-export const editGraph = (a: string, b: string): Operation[] => {
+export const editGraph = (a: string, b: string) => {
   const graph: (EditCell | undefined)[][] = Array.from({ length: a.length + 1 }, () =>
     Array.from({ length: b.length + 1 }, () => undefined)
   );
@@ -37,30 +36,48 @@ export const editGraph = (a: string, b: string): Operation[] => {
     }
   }
 
-  // 編集を逆算
-  const operations: Operation[] = [];
+  // 共通部分を算出
+  const common: { char: string; ai: number; bi: number }[] = [];
   let i = a.length;
   let j = b.length;
   while (i >= 0 || j >= 0) {
     const cell = graph[i][j]!;
     switch (cell.prev) {
       case "diagonal": {
+        common.push({ char: a[i - 1], ai: i - 1, bi: j - 1 });
         i--;
         j--;
         break;
       }
       case "top": {
-        operations.push({ type: "delete", char: a[i - 1], index: i - 1 });
         i--;
         break;
       }
       case "left": {
-        operations.push({ type: "insert", char: b[j - 1], index: j - 1 });
         j--;
         break;
       }
     }
   }
 
-  return operations.reverse();
+  common.pop();
+  common.reverse();
+
+  console.log("common", common);
+
+  // common に含まれる改行で a, b を分割
+  const commonNewLines: { ar: string; br: string }[] = [];
+  let lastAi = 0;
+  let lastBi = 0;
+
+  for (const { char, ai, bi } of common) {
+    if (char === "\n") {
+      commonNewLines.push({ ar: a.slice(lastAi, ai), br: b.slice(lastBi, bi) });
+      lastAi = ai + 1;
+      lastBi = bi + 1;
+    }
+  }
+  commonNewLines.push({ ar: a.slice(lastAi, a.length), br: b.slice(lastBi, b.length) });
+
+  console.log("commonNewLines", commonNewLines);
 };
