@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import { defineProps } from "vue";
 import { simpleDecorated } from "@/lib/editor-parse";
-
-defineProps<{ text: string; color?: string }>();
+defineProps<{ text: { line: string; show: boolean }[]; color?: string }>();
 </script>
 
 <template>
@@ -21,13 +21,18 @@ defineProps<{ text: string; color?: string }>();
         <div :style="{ flexShrink: 0, borderLeft: `1px dashed ${color}`, paddingRight: '6px' }"></div>
         <div :class="$style.main">
           <div :class="$style.dummy">
-            <div v-for="(line, i) in simpleDecorated(text, { start: 0, end: 0 })" :key="i" :class="$style.dummyLine">
+            <div v-for="(obj, i) in text" :key="i" :class="$style.dummyLine" :style="!obj.show ? { opacity: 0 } : {}">
               <div :class="$style.lineNumber">
                 <p :class="$style.lineNumberText" :style="{ color: color }">
                   {{ i + 1 }}
                 </p>
               </div>
-              <span v-for="(part, j) in line" :key="j" :class="$style.dummyLineText" :style="part.style">
+              <span
+                v-for="(part, j) in simpleDecorated(obj.line, { start: 0, end: 0 })[0]"
+                :key="j"
+                :class="$style.dummyLineText"
+                :style="part.style"
+              >
                 {{ part.part }}
               </span>
             </div>

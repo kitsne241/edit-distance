@@ -1,6 +1,6 @@
 type EditCell = { cost: number; prev: "top" | "left" | "diagonal" };
 
-export const editGraph = (a: string, b: string) => {
+export const commonLines = (a: string, b: string) => {
   const graph: (EditCell | undefined)[][] = Array.from({ length: a.length + 1 }, () =>
     Array.from({ length: b.length + 1 }, () => undefined)
   );
@@ -63,8 +63,6 @@ export const editGraph = (a: string, b: string) => {
   common.pop();
   common.reverse();
 
-  console.log("common", common);
-
   // common に含まれる改行で a, b を分割
   const commonNewLines: { ar: string; br: string }[] = [];
   let lastAi = 0;
@@ -79,5 +77,5 @@ export const editGraph = (a: string, b: string) => {
   }
   commonNewLines.push({ ar: a.slice(lastAi, a.length), br: b.slice(lastBi, b.length) });
 
-  console.log("commonNewLines", commonNewLines);
+  return commonNewLines;
 };
